@@ -3,7 +3,20 @@ from fastapi import FastAPI
 from app.routes.content import router as content_router
 from app.routes.lead_scoring import router as lead_scoring_router
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+origins = ["https://social-media-manager-frontend-enmpr9drl-apex-tricon.vercel.app"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(content_router)
 app.include_router(lead_scoring_router)
