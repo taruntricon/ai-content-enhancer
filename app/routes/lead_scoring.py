@@ -2,6 +2,7 @@ from fastapi import (
     APIRouter,
     HTTPException,
     status,
+    Body,
 )
 
 from app.models.lead_scoring_model import (
@@ -12,6 +13,7 @@ from app.services.llm_lead_scoring import (
     score_leads_llm,
 )
 
+from app.utils.file_utils import read_json_file
 
 router = APIRouter()
 
@@ -30,18 +32,25 @@ TARGET_INDUSTRIES = [
     status_code=status.HTTP_200_OK,
 )
 def score_leads(
-    request_data: list[LeadEngagementRequest],
+    request_data: list[LeadEngagementRequest] | None = Body(default=None),
 ) -> list[LeadScoreResponse]:
 
     try:
-        # Convert Pydantic models
-        # into normal Python dictionaries.
-        engagement_data = [
-            item.model_dump(
-                mode="json"
+        if request_data:
+            engagement_data = [
+                item.model_dump(mode="json")
+                for item in request_data
+            ]
+        else:
+            engagement_data = read_json_file(
+                "app/models/sample_data.json"
             )
-            for item in request_data
-        ]
+        # engagement_data = [
+        #     item.model_dump(
+        #         mode="json"
+        #     )
+        #     for item in request_data
+        # ]
 
         results = score_leads_llm(
             engagement_data,
