@@ -5,11 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.content import router as content_router
 from app.routes.lead_scoring import router as lead_scoring_router
+from app.routes.publish_post import router as post_router
 
 from app.scheduler.scheduler import (
     start_scheduler,
     stop_scheduler,
 )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,6 +44,7 @@ app.add_middleware(
 
 app.include_router(content_router)
 app.include_router(lead_scoring_router)
+app.include_router(post_router)
 
 
 @app.get("/")
