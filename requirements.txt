@@ -5,3 +5,8 @@ openai
 google-generativeai
 pydantic
 huggingface_hub
+apscheduler
+requests
+sqlalchemy
+psycopg[binary]
+pydantic-settings apscheduler

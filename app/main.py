@@ -1,14 +1,36 @@
-
-from fastapi import FastAPI
-from app.routes.content import router as content_router
-from app.routes.lead_scoring import router as lead_scoring_router
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from app.routes.content import router as content_router
+from app.routes.lead_scoring import router as lead_scoring_router
 
-origins = ["https://social-media-manager-frontend-enmpr9drl-apex-tricon.vercel.app"]
+from app.scheduler.scheduler import (
+    start_scheduler,
+    stop_scheduler,
+)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Application starting...")
+
+    start_scheduler()
+
+    yield
+
+    print("Application shutting down...")
+
+    stop_scheduler()
+
+
+app = FastAPI(
+    lifespan=lifespan
+)
+
+origins = [
+    "https://social-media-manager-frontend-enmpr9drl-apex-tricon.vercel.app"
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +43,9 @@ app.add_middleware(
 app.include_router(content_router)
 app.include_router(lead_scoring_router)
 
+
 @app.get("/")
 def health():
-    return {"status": "UP"}
+    return {
+        "status": "UP"
+    }

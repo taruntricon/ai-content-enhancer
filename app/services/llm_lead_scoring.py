@@ -99,12 +99,15 @@ def score_leads_llm(
             "name": actor.get("name"),
             "designation": actor.get("designation"),
             "company": actor.get("company"),
-            "industry": actor.get("industry"),
+            "industry": actor.get("industry",""),
             "scores": r.get("scores", {}),
             "total_score": r.get("total_score"),
             "tier": r["tier"],
             "reasoning": r["reasoning"],
             "confidence": r["confidence"],
+            "postText": original.get("postText"),
+            "message": original.get("message",""),
+            
         })
 
     tier_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}

@@ -17,6 +17,7 @@ class LeadEngagementRequest(BaseModel):
     engagementId: str
     platform: str
     postId: str
+    postText: str | None = None
     action: str
     message: str | None = None
     actor: Actor
@@ -24,10 +25,12 @@ class LeadEngagementRequest(BaseModel):
 
 
 class LeadScoreResponse(BaseModel):
+    postText: str | None = None
     tier: str
     # confidence: str
     name: str
-    industry: str
+    industry: str | None = None
     reasoning: str
     # scores: dict[str, Any]
     total_score: int
+    message: str | None = None
