@@ -6,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.content import router as content_router
 from app.routes.lead_scoring import router as lead_scoring_router
 from app.routes.publish_post import router as post_router
+from app.routes.fetch_post_detail import router as post_detail_router
+from app.routes.fetch_comment_detail import router as comment_detail_router
+from app.routes.mongodb import router as mongodb_router
 
 from app.scheduler.scheduler import (
     start_scheduler,
@@ -45,7 +48,9 @@ app.add_middleware(
 app.include_router(content_router)
 app.include_router(lead_scoring_router)
 app.include_router(post_router)
-
+app.include_router(post_detail_router)
+app.include_router(comment_detail_router)
+app.include_router(mongodb_router)
 
 @app.get("/")
 def health():
