@@ -9,5 +9,5 @@ apscheduler
 requests
 sqlalchemy
 psycopg[binary]
-pydantic-settings apscheduler
+pydantic-settings
 pymongo
