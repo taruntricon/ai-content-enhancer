@@ -6,6 +6,8 @@ from app.config import (
     HF_API_KEY
 )
 
+from app.database.leads_repository import save_lead
+from app.database.mongodb import engagements_collection
 
 DEFAULT_TARGET_INDUSTRIES = [
     "Healthcare",
@@ -20,6 +22,15 @@ prompt_file = "app/prompts/lead_scoring_system_prompt.txt"
 
 with open(prompt_file, encoding="utf-8") as f:
         SYSTEM_PROMPT_TEMPLATE = f.read()
+
+# with open(
+#     "app/models/sample_data.json",
+#     "r",
+#     encoding="utf-8"
+# ) as file:
+#     sample_data = json.load(file)
+
+# results = score_leads_llm(sample_data)
 
 
 def _build_system_prompt(target_industries):
@@ -90,25 +101,82 @@ def score_leads_llm(
 
     # Merge LLM tier/reasoning back with original actor info for readability
     by_id = {e["engagementId"]: e for e in engagements}
-    merged = []
+    # post_text = {e["message"]: e for e in engagements}
+    leads = []
     for r in llm_results:
         original = by_id.get(r["engagementId"], {})
         actor = original.get("actor", {})
-        merged.append({
+        leads.append({
+            "postText": original.get("postText"),
             "engagementId": r["engagementId"],
             "name": actor.get("name"),
-            "designation": actor.get("designation"),
-            "company": actor.get("company"),
-            "industry": actor.get("industry",""),
-            "scores": r.get("scores", {}),
+            # "designation": actor.get("designation"),
+            # "company": actor.get("company"),
+            # "industry": actor.get("industry",""),
+            # "scores": r.get("scores", {}),
             "total_score": r.get("total_score"),
-            "tier": r["tier"],
+            "intent": r["tier"],
             "reasoning": r["reasoning"],
-            "confidence": r["confidence"],
-            "postText": original.get("postText"),
+            # "confidence": r["confidence"],
             "message": original.get("message",""),
-            
         })
 
     tier_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-    return sorted(merged, key=lambda x: tier_order.get(x["tier"], 3))
+    sorted_leads = sorted(leads, key=lambda x: tier_order.get(x["intent"], 3))
+    print(sorted_leads)
+    save_lead(sorted_leads)
+
+    engagement_ids = [
+    lead["engagementId"]
+    for lead in sorted_leads
+    ]
+    print(engagement_ids)
+    engagements_collection.update_many(
+        {
+            "engagementId": {"$in": engagement_ids}
+        },
+        {
+            "$set": {"leadProcessed": "True"}
+        }
+    )
+
+    return sorted_leads
+
+
+# if __name__ == "__main__":
+#     sample_data = [
+#         {
+#             "engagementId": "eng_001", "action": "comment",
+#             "message": "This is exactly what we need. Can we set up a 30-min call this week to see it live?",
+#             "actor": {"name": "Priya Nandakumar", "designation": "Director of Legal Operations",
+#                        "company": "Solstice Health Group", "industry": "Healthcare", "previousInteractions": 2},
+#         },
+#         {
+#             "engagementId": "eng_002", "action": "comment",
+#             "message": "What's the pricing for a team of ~25 reviewers?",
+#             "actor": {"name": "Marcus Feld", "designation": "VP, Procurement",
+#                        "company": "Nordwell Manufacturing", "industry": "Manufacturing", "previousInteractions": 0},
+#         },
+#         {
+#             "engagementId": "eng_003", "action": "comment",
+#             "message": "Can you send me a demo? We get hundreds of LinkedIn comments a week and it's brutal trying to spot the real buyers.",
+#             "actor": {"name": "Ana Kovacevic", "designation": "CEO",
+#                        "company": "Brightline Logistics", "industry": "Logistics", "previousInteractions": 1},
+#         },
+#         {
+#             "engagementId": "eng_004", "action": "positive_comment",
+#             "message": "Love this. We've been looking for something like this all year.",
+#             "actor": {"name": "Devon Achebe", "designation": "Head of Contracts",
+#                        "company": "Farro & Vance LLP", "industry": "Legal Services", "previousInteractions": 0},
+#         },
+#         {
+#             "engagementId": "eng_005", "action": "share", "message": None,
+#             "actor": {"name": "Renata Silva", "designation": "Operations Manager",
+#                        "company": "Kestrel Freight Co.", "industry": "Logistics", "previousInteractions": 0},
+#         },
+#     ]
+
+
+# results = score_leads_llm(sample_data, target_industries=["Healthcare", "Legal Services", "Logistics", "Manufacturing"])
+# for r in results:
+#     print(f"{r['tier']:6s} | {r['confidence']:6s} | {r['name']:20s} | {r['reasoning']}")
