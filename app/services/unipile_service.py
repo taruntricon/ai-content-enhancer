@@ -128,6 +128,23 @@ def fetch_post_details(post_id: str) -> dict | None:
             timeout=30,
         )
 
+        post_details = response.json()
+
+        result = {
+            "postId": post_id,
+            "analytics": {
+                "impressions": post_details["analytics"]["impressions"],
+                "members_reached": post_details["analytics"]["members_reached"],
+                "profile_viewers": post_details["analytics"]["profile_viewers_from_this_post"],
+                "followers_gained": post_details["analytics"]["followers_gained_from_this_post"],
+                "reactions": post_details["analytics"]["reactions"],
+                "comments": post_details["analytics"]["comments"],
+                "reposts": post_details["analytics"]["reposts"],
+            }
+        }
+
+        save_post_analytics(result)
+
         response.raise_for_status()
 
         return response.json()
