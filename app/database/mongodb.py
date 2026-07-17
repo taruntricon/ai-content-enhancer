@@ -9,6 +9,7 @@ db = client["social_media_db"]
 posts_collection = db["posts"]
 engagements_collection = db["engagements"]
 leads_collection = db["leads"]
+post_analytics_collection = db["post_analytics"]
 
 # post = {
 #     "postId": "7482344406616842241",
