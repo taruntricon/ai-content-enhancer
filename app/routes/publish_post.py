@@ -5,6 +5,7 @@ from app.models.post_model import PublishPostRequest
 from app.services.unipile_service import publish_post
 
 from app.utils.file_utils import write_json_file
+from app.database.post_repository import save_post
 
 
 router = APIRouter()
@@ -22,6 +23,8 @@ def publish_linkedin_post(request: PublishPostRequest):
             "postText": request.text,
             "platform": "LinkedIn",
         }
+
+        save_post(post_data)
 
         write_json_file(
             post_data,

@@ -14,6 +14,7 @@ from app.services.llm_lead_scoring import (
 )
 
 from app.utils.file_utils import read_json_file
+from app.database.mongodb import engagements_collection
 
 router = APIRouter()
 
@@ -42,20 +43,21 @@ def score_leads(
                 for item in request_data
             ]
         else:
-            engagement_data = read_json_file(
-                "app/models/sample_data.json"
-            )
-        # engagement_data = [
-        #     item.model_dump(
-        #         mode="json"
-        #     )
-        #     for item in request_data
-        # ]
-
-        results = score_leads_llm(
-            engagement_data,
-            target_industries=TARGET_INDUSTRIES,
+            engagement_data = list(
+            engagements_collection.find(
+            {"leadProcessed": "False"},
         )
+)
+            # engagement_data = read_json_file(
+            #     "app/models/sample_data.json"
+            # )
+        if engagement_data:
+            results = score_leads_llm(
+                engagement_data,
+                target_industries=TARGET_INDUSTRIES,
+            )
+        else: 
+            return []
 
         return results
 

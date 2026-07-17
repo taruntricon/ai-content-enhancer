@@ -26,10 +26,10 @@ class LeadEngagementRequest(BaseModel):
 
 class LeadScoreResponse(BaseModel):
     postText: str | None = None
-    tier: str
+    intent: str
     # confidence: str
     name: str
-    industry: str | None = None
+    # industry: str | None = None
     reasoning: str
     # scores: dict[str, Any]
     total_score: int

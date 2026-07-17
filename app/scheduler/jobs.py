@@ -9,8 +9,44 @@ from app.utils.file_utils import (
     read_json_file,
 )
 
+from app.database.engagement_repository import save_engagement
+from app.database.post_repository import get_all_posts
+
+
+# def save_engagement_data_to_db():
+#     posts = read_json_file("app/models/sample_data.json")
+#     for engagement in posts:
+#                 # print(engagement)
+#         save_engagement(engagement)
+
+    # for post in posts:
+    #     response = fetch_post_comments(post["postId"])
+
+    #     if response:
+    #         engagements = map_comments_to_engagements(
+    #             response=response,
+    #             post_text=post["postText"],
+    #         )
+    #         for engagement in engagements:
+    #             print(engagement)
+    #             save_engagement(engagement)
+
+    #     print("Mapped Engagements")
+
+    #     # for engagement in engagements:
+    #     #     print(engagement)
+
+    #     # write_json_file(
+    #     # engagements,
+    #     # "app/models/sample_data.json"
+    #     # )
+
+    # else:
+
+    #     print("No data received")
 
 def fetch_unipile_comments_job():
+    
 
     print("=" * 60)
     print("Fetching LinkedIn comments")
@@ -20,7 +56,8 @@ def fetch_unipile_comments_job():
     # if(post_text):
     #     print(post_text)
 
-    posts = read_json_file("app/models/post_data.json")
+    # posts = read_json_file("app/models/post_data.json")
+    posts = get_all_posts()
 
     for post in posts:
         response = fetch_post_comments(post["postId"])
@@ -30,28 +67,22 @@ def fetch_unipile_comments_job():
                 response=response,
                 post_text=post["postText"],
             )
+            for engagement in engagements:
+                print(engagement)
+                save_engagement(engagement)
 
-    # response = fetch_post_comments(post_id)
-
-
-    # # response = fetch_post_comments()
-
-    # if response:
-
-    #     engagements = map_comments_to_engagements(
-    #     response=response,
-    #     post_text=post_text,
+    
 # )
 
         print("Mapped Engagements")
 
-        for engagement in engagements:
-            print(engagement)
+        # for engagement in engagements:
+        #     print(engagement)
 
-        write_json_file(
-        engagements,
-        "app/models/sample_data.json"
-        )
+        # write_json_file(
+        # engagements,
+        # "app/models/sample_data.json"
+        # )
 
     else:
 
