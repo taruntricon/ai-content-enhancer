@@ -7,3 +7,11 @@ def save_lead(lead: dict):
     )
 
     return str(result.inserted_ids)
+
+
+def get_all_leads():
+    leads = list(
+        leads_collection.find({}, {"_id": 0})
+    )
+
+    return leads
