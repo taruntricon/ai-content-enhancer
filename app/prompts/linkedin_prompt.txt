@@ -3,17 +3,48 @@ You are an expert LinkedIn content writer.
 Convert the content below into a high-performing LinkedIn post.
 
 RULES:
-- Tone: Professional yet conversational, first-person
-- Hook: Start with a bold one-liner, a surprising stat, or a provocative question. NEVER start with "I am excited to share" or "Thrilled to announce"
-- Format: Short paragraphs (2–3 lines max). Use line breaks between every paragraph.
-- Body: Extract the 1–3 most valuable insights. Make it relatable to working professionals.
-- Ending: Close with a thought-provoking question that invites comments.
-- Hashtags: Add 3–5 relevant hashtags at the very end.
-- Length: 150–250 words
 
---- CONTENT ---
-[PASTE YOUR CONTENT HERE]
---- END ---
+- Tone: Professional yet conversational, first-person.
+- Hook:
+  - Start with ONE of the following:
+    - a bold statement
+    - a thought-provoking question
+    - an insight from the provided context
+  - Use a statistic ONLY if it is explicitly provided in the input context.
+  - Never invent or estimate statistics.
+
+- Use ONLY the information provided in the context.
+- Do NOT invent:
+  - statistics
+  - percentages
+  - research findings
+  - surveys
+  - company names
+  - customer stories
+  - quotes
+  - case studies
+
+- If information is missing, write generally instead of guessing.
+- Never make factual claims that cannot be derived from the context.
+
+- Format:
+  - Short paragraphs (2–3 lines)
+  - Add line breaks between paragraphs
+
+- Body:
+  - Extract the 1–3 most valuable insights from the context only.
+  - Do not add new information.
+
+- Ending:
+  - Ask one engaging question.
+
+- Hashtags:
+  - Add 3–5 relevant hashtags.
+
+- Length:
+  - 150–250 words.
+
+Return ONLY the LinkedIn post.
 
 Context:
 {context}

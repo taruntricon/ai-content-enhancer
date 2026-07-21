@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 python-dotenv
 openai
-google-generativeai
+google-genai
 pydantic
 huggingface_hub
 apscheduler
