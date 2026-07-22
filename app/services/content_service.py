@@ -12,7 +12,8 @@ from app.config import (
     HF_API_KEY,
     HF_MODEL,
     OPENAI_API_KEY,
-    OPENAI_MODEL
+    OPENAI_MODEL,
+    GEMINI_MODELS
 )
 
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
@@ -31,14 +32,36 @@ hf_client = InferenceClient(
     api_key=HF_API_KEY
 )
 
-def call_gemini(prompt):
-    print("gemini")
-    response = gemini_client.models.generate_content(
-    model=GEMINI_MODEL,
-    contents=prompt
-    )
+# def call_gemini(prompt):
+#     print("gemini")
+#     print(f"Using model: {GEMINI_MODEL}")
+#     response = gemini_client.models.generate_content(
+#     model=GEMINI_MODEL,
+#     contents=prompt
+#     )
 
-    return response.text
+#     return response.text
+
+def call_gemini(prompt: str):
+    last_error = None
+
+    for model in GEMINI_MODELS:
+        try:
+            print(f"Trying Gemini model: {model}")
+
+            response = gemini_client.models.generate_content(
+                model=model,
+                contents=prompt
+            )
+
+            print(f"Success with {model}")
+            return response.text
+
+        except Exception as e:
+            print(f"{model} failed: {e}")
+            last_error = e
+
+    raise last_error
 
 def call_grok(prompt):
 
