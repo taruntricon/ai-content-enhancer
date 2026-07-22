@@ -11,6 +11,7 @@ from app.routes.fetch_comment_detail import router as comment_detail_router
 from app.routes.mongodb import router as mongodb_router
 from app.routes.post_analytics import router as post_analytics_router
 from app.routes.get_leads import router as get_leads_router
+from app.routes.draft_message import router as draft_message_router
 
 from app.scheduler.scheduler import (
     start_scheduler,
@@ -55,6 +56,7 @@ app.include_router(comment_detail_router)
 app.include_router(mongodb_router)
 app.include_router(post_analytics_router)
 app.include_router(get_leads_router)
+app.include_router(draft_message_router)
 
 @app.get("/")
 def health():
