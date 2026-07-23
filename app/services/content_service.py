@@ -102,7 +102,7 @@ def call_huggingface(prompt):
     )
 
     response = client.chat.completions.create(
-    model="meta-llama/Llama-3.1-8B-Instruct",
+    model=HF_MODEL or "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
     messages=[
         {
             "role": "user",
@@ -185,3 +185,96 @@ def enhance_content(context, platform):
             continue
 
     raise Exception("All AI providers failed.")
+
+
+def generate_outreach_draft(
+    lead_name: str,
+    lead_message: str = "",
+    post_text: str = "",
+    intent: str = "HIGH",
+    reasoning: str = "",
+    channel: str = "email",
+    variation: int = 1,
+) -> dict:
+    prompt_file = "app/prompts/outreach_draft_prompt.txt"
+    with open(prompt_file, encoding="utf-8") as f:
+        system_prompt = f.read()
+
+    variation_hints = {
+        1: "Direct & Actionable (focus on immediate value & demo/solution)",
+        2: "Consultative & Helpful (ask an insightful question and share relevant insight)",
+        3: "Short & Concise (keep it under 60 words with a clear low-friction question)",
+    }
+    v_hint = variation_hints.get((variation - 1) % 3 + 1, "Direct & Actionable")
+
+    formatted_prompt = system_prompt.format(
+        lead_name=lead_name or "Prospect",
+        lead_message=lead_message or "Interested in your product",
+        post_text=post_text or "Social post",
+        intent=intent or "HIGH",
+        reasoning=reasoning or "High buying signal",
+        channel=channel or "email",
+        variation_hint=v_hint,
+    )
+
+    raw_output = None
+    for provider in AI_PROVIDERS:
+        try:
+            print(f"Drafting outreach with {provider} (variation {variation})...")
+            if provider == "gemini":
+                raw_output = call_gemini(formatted_prompt)
+            elif provider == "huggingface":
+                raw_output = call_huggingface(formatted_prompt)
+            elif provider == "grok":
+                raw_output = call_grok(formatted_prompt)
+            elif provider == "openai":
+                raw_output = call_openai(formatted_prompt)
+
+            if raw_output:
+                break
+        except Exception as e:
+            print(f"{provider} failed for outreach draft: {e}")
+            continue
+
+    if not raw_output:
+        raw_output = f"Hi {lead_name},\n\nThanks for reaching out! We'd love to connect with you regarding your interest."
+
+    raw_output = guardrail.sanitize(raw_output)
+
+    subject = None
+    body = raw_output
+
+    if channel.lower() == "email" and "Subject:" in raw_output:
+        parts = raw_output.split("Subject:", 1)[1].strip()
+        lines = parts.split("\n", 1)
+        subject_line = lines[0].strip()
+
+        if len(lines) > 1 and lines[1].strip():
+            # Normal case: body on next line(s)
+            subject = subject_line
+            body = lines[1].strip()
+        else:
+            # LLM put everything on one line — try to split on "Body:" marker
+            if "Body:" in subject_line:
+                sub_parts = subject_line.split("Body:", 1)
+                subject = sub_parts[0].strip()
+                body = sub_parts[1].strip()
+            else:
+                # Heuristic: take first sentence as subject, rest as body
+                import re
+                match = re.search(r"^(.{10,120}?[.!?])\s+(.+)$", subject_line, re.DOTALL)
+                if match:
+                    subject = match.group(1).strip()
+                    body = match.group(2).strip()
+                else:
+                    # Fallback: first 80 chars as subject
+                    subject = subject_line[:80].rstrip(" ,")
+                    body = subject_line[80:].strip()
+
+    return {
+        "subject": subject,
+        "body": body,
+        "channel": channel,
+        "variation": variation,
+    }
+

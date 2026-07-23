@@ -3,11 +3,13 @@ import json
 from typing import Any
 from openai import OpenAI
 from app.config import (
-    HF_API_KEY
+    HF_API_KEY,
+    HF_MODEL
 )
 
 from app.database.leads_repository import save_lead
 from app.database.mongodb import engagements_collection
+from app.services.guardrails import guardrail
 
 DEFAULT_TARGET_INDUSTRIES = [
     "Healthcare",
@@ -16,7 +18,7 @@ DEFAULT_TARGET_INDUSTRIES = [
     "Manufacturing",
 ]
 
-MODEL = "meta-llama/Llama-3.1-8B-Instruct"
+MODEL = HF_MODEL or "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
 prompt_file = "app/prompts/lead_scoring_system_prompt.txt"
 
@@ -99,26 +101,31 @@ def score_leads_llm(
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse model output as JSON: {e}\nRaw output: {raw_text}")
 
+    # Pass LLM output through Guardrails for score bounding, total score math, and tier overrides
+    validation = guardrail.validate_lead_scoring(llm_results)
+    if not validation["valid"]:
+        print("Lead scoring guardrail warnings/errors:")
+        for err in validation["errors"]:
+            print(f"- {err}")
+    
+    sanitized_results = validation["sanitized_leads"]
+
     # Merge LLM tier/reasoning back with original actor info for readability
     by_id = {e["engagementId"]: e for e in engagements}
-    # post_text = {e["message"]: e for e in engagements}
     leads = []
-    for r in llm_results:
+    for r in sanitized_results:
         original = by_id.get(r["engagementId"], {})
         actor = original.get("actor", {})
         leads.append({
             "postText": original.get("postText"),
             "engagementId": r["engagementId"],
             "name": actor.get("name"),
-            # "designation": actor.get("designation"),
-            # "company": actor.get("company"),
-            # "industry": actor.get("industry",""),
-            # "scores": r.get("scores", {}),
-            "total_score": r.get("total_score"),
+            "total_score": r["total_score"],
             "intent": r["tier"],
             "reasoning": r["reasoning"],
-            # "confidence": r["confidence"],
-            "message": original.get("message",""),
+            "confidence": r["confidence"],
+            "scores": r["scores"],
+            "message": original.get("message", ""),
         })
 
     tier_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}

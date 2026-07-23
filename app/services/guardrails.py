@@ -133,5 +133,94 @@ IMPORTANT RULES
 
         return not validation_result["valid"]
 
+    def validate_lead_scoring(self, llm_results: list[dict[str, Any]]) -> dict[str, Any]:
+        """
+        Guardrail validation for LLM lead scoring outputs.
+        Ensures score bounds, tier consistency, total score calculation, and valid confidence.
+        """
+        errors = []
+        sanitized = []
+
+        if not isinstance(llm_results, list):
+            return {
+                "valid": False,
+                "errors": ["LLM lead scoring output must be a JSON array"],
+                "sanitized_leads": []
+            }
+
+        for idx, item in enumerate(llm_results):
+            if not isinstance(item, dict):
+                errors.append(f"Item at index {idx} is not a valid object.")
+                continue
+
+            eng_id = item.get("engagementId", f"unknown_{idx}")
+            scores = item.get("scores", {})
+            if not isinstance(scores, dict):
+                scores = {}
+
+            # Signal score extraction & clamping
+            msg_intent = max(0, min(40, int(scores.get("message_intent", 0))))
+            designation = max(0, min(25, int(scores.get("designation", 0))))
+            industry = max(0, min(20, int(scores.get("industry", 0))))
+            action = max(0, min(15, int(scores.get("action", 0))))
+
+            calculated_total = msg_intent + designation + industry + action
+            given_total = item.get("total_score")
+
+            if given_total is None or given_total != calculated_total:
+                errors.append(
+                    f"Lead {eng_id}: Given total score ({given_total}) does not match sum of signals ({calculated_total})."
+                )
+
+            total_score = max(0, min(100, calculated_total))
+
+            # Tier determination & guardrail override rules
+            given_tier = str(item.get("tier", "")).upper()
+
+            if msg_intent >= 31:
+                expected_tier = "HIGH"
+            elif total_score >= 70:
+                expected_tier = "HIGH"
+            elif total_score >= 40:
+                expected_tier = "MEDIUM"
+            else:
+                expected_tier = "LOW"
+
+            if given_tier not in ["HIGH", "MEDIUM", "LOW"]:
+                errors.append(f"Lead {eng_id}: Invalid tier '{given_tier}'. Expected '{expected_tier}'.")
+                given_tier = expected_tier
+            elif given_tier != expected_tier:
+                errors.append(
+                    f"Lead {eng_id}: Tier mismatch '{given_tier}' vs expected '{expected_tier}' based on scores."
+                )
+                given_tier = expected_tier
+
+            # Confidence determination
+            confidence = str(item.get("confidence", "medium")).lower()
+            if confidence not in ["high", "medium", "low"]:
+                confidence = "medium"
+
+            reasoning = str(item.get("reasoning", "Score assigned based on engagement analysis.")).strip()
+
+            sanitized.append({
+                "engagementId": eng_id,
+                "scores": {
+                    "message_intent": msg_intent,
+                    "designation": designation,
+                    "industry": industry,
+                    "action": action,
+                },
+                "total_score": total_score,
+                "tier": given_tier,
+                "reasoning": reasoning,
+                "confidence": confidence,
+            })
+
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "sanitized_leads": sanitized,
+        }
+
 
 guardrail = GuardrailService()
