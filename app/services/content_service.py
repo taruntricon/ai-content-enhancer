@@ -241,7 +241,21 @@ def generate_outreach_draft(
             continue
 
     if not raw_output:
-        raw_output = f"Hi {lead_name},\n\nThanks for reaching out! We'd love to connect with you regarding your interest."
+        if channel.lower() == "email":
+            raw_output = (
+                f"Subject: Connecting regarding your interest\n\n"
+                f"Hi {full_name},\n\n"
+                f"Thanks for reaching out! We'd love to connect with you regarding your interest in our recent post.\n\n"
+                f"Would you be open to a brief 10-minute chat later this week?\n\n"
+                f"Thanks & Regards,\n"
+                f"[Your Name]"
+            )
+        else:
+            raw_output = (
+                f"Hi {first_name}, thanks for your note on my post! "
+                f"I'd love to share how we're helping teams address key challenges in this space. "
+                f"Are you open to a quick chat this week?"
+            )
 
     raw_output = guardrail.sanitize(raw_output)
 
