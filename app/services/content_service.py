@@ -205,10 +205,12 @@ def generate_outreach_draft(
         2: "Consultative & Helpful (ask an insightful question and share relevant insight)",
         3: "Short & Concise (keep it under 60 words with a clear low-friction question)",
     }
+    clean_name = (lead_name or "").strip()
+    first_name = clean_name.split()[0] if clean_name else "there"
     v_hint = variation_hints.get((variation - 1) % 3 + 1, "Direct & Actionable")
 
     formatted_prompt = system_prompt.format(
-        lead_name=lead_name or "Prospect",
+        first_name=first_name,
         lead_message=lead_message or "Interested in your product",
         post_text=post_text or "Social post",
         intent=intent or "HIGH",
