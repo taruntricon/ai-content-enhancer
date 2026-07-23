@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.scheduler.jobs import fetch_unipile_comments_job
