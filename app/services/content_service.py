@@ -241,35 +241,35 @@ def generate_outreach_draft(
 
     raw_output = guardrail.sanitize(raw_output)
 
+    # Strip any preamble like "If channel is message:", "Here is the draft:", etc.
+    import re
+    raw_output = re.sub(r"^(if channel is [\"']?\w+[\"']?:?|here is (the|your) draft:?)\s*", "", raw_output, flags=re.IGNORECASE).strip()
+
     subject = None
     body = raw_output
 
-    if channel.lower() == "email" and "Subject:" in raw_output:
-        parts = raw_output.split("Subject:", 1)[1].strip()
-        lines = parts.split("\n", 1)
-        subject_line = lines[0].strip()
-
-        if len(lines) > 1 and lines[1].strip():
-            # Normal case: body on next line(s)
-            subject = subject_line
-            body = lines[1].strip()
-        else:
-            # LLM put everything on one line — try to split on "Body:" marker
-            if "Body:" in subject_line:
-                sub_parts = subject_line.split("Body:", 1)
+    if channel.lower() == "email":
+        if "Subject:" in raw_output:
+            parts = raw_output.split("Subject:", 1)[1].strip()
+            if "Body:" in parts:
+                sub_parts = parts.split("Body:", 1)
                 subject = sub_parts[0].strip()
                 body = sub_parts[1].strip()
             else:
-                # Heuristic: take first sentence as subject, rest as body
-                import re
-                match = re.search(r"^(.{10,120}?[.!?])\s+(.+)$", subject_line, re.DOTALL)
-                if match:
-                    subject = match.group(1).strip()
-                    body = match.group(2).strip()
-                else:
-                    # Fallback: first 80 chars as subject
-                    subject = subject_line[:80].rstrip(" ,")
-                    body = subject_line[80:].strip()
+                lines = parts.split("\n", 1)
+                subject = lines[0].strip()
+                body = lines[1].strip() if len(lines) > 1 else ""
+            
+            # Clean "Body:" prefix if left in body
+            body = re.sub(r"^Body:\s*", "", body, flags=re.IGNORECASE).strip()
+    else:
+        # For DM / message channel, ensure no Subject line or Body label
+        if "Subject:" in raw_output:
+            if "\n" in raw_output:
+                body = raw_output.split("\n", 1)[1].strip()
+            else:
+                body = raw_output
+        body = re.sub(r"^(Subject:[^\n]*\n?|Body:\s*)", "", body, flags=re.IGNORECASE).strip()
 
     return {
         "subject": subject,

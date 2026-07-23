@@ -7,29 +7,21 @@ INPUT DETAILS:
 - Original Post Context: "{post_text}"
 - Lead Intent Tier: {intent}
 - Lead Scoring Reasoning: {reasoning}
-- Outreach Channel: {channel} (either "email" or "message")
-- Variation Option: {variation_hint}
+- Outreach Channel: {channel}
+- Variation Style: {variation_hint}
 
-INSTRUCTIONS:
-1. If channel is "email":
-   - Include a clear, catchy "Subject:" line.
-   - Write a professional, concise email body (100-150 words max).
-   - Address their explicit pain point or interest expressed in their comment.
-   - Include a low-friction call to action (e.g. "Open to a quick 10-min chat?").
-2. If channel is "message" (LinkedIn DM):
-   - Do NOT include a Subject line.
-   - Write a friendly, highly direct LinkedIn DM (50-100 words max).
-   - Reference their comment context naturally.
-3. Tailor the tone based on the Variation Option:
-   - Option 1 (Direct & Actionable): focus on immediate value & demo/solution.
-   - Option 2 (Consultative & Helpful): ask an insightful question and share relevant insight.
-   - Option 3 (Short & Concise): keep it under 60 words with a clear question.
+STRICT OUTPUT RULES:
+1. Do NOT include thinking tags, markdown intros, or headers like "If channel is...".
+2. Tailor the message based on the Variation Style ({variation_hint}).
 
-OUTPUT FORMAT:
-If channel is "email":
+FORMAT INSTRUCTIONS:
+If Outreach Channel is "email":
+Your output MUST start with "Subject:" on the first line, followed by "Body:" on a new line with the message content.
+Format:
 Subject: <compelling subject line>
+Body: <email body text>
 
-<email body>
-
-If channel is "message":
-<message body>
+If Outreach Channel is "message" (LinkedIn DM):
+Do NOT output any Subject line or "Body:" label. Output ONLY the direct message text.
+Format:
+<direct message text>
