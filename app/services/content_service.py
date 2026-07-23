@@ -1,7 +1,11 @@
+import os
+from pathlib import Path
 from openai import OpenAI
 from google import genai
 from huggingface_hub import InferenceClient
 from app.services.guardrails import guardrail
+
+BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__))).parent
 
 from app.config import (
     AI_PROVIDERS,
@@ -117,9 +121,9 @@ def call_huggingface(prompt):
 def enhance_content(context, platform):
 
     if platform.lower() == "linkedin":
-        prompt_file = "app/prompts/linkedin_prompt.txt"
+        prompt_file = BASE_DIR / "prompts" / "linkedin_prompt.txt"
     else:
-        prompt_file = "app/prompts/instagram_prompt.txt"
+        prompt_file = BASE_DIR / "prompts" / "instagram_prompt.txt"
 
     with open(prompt_file, encoding="utf-8") as f:
         system_prompt = f.read()
@@ -196,7 +200,7 @@ def generate_outreach_draft(
     channel: str = "email",
     variation: int = 1,
 ) -> dict:
-    prompt_file = "app/prompts/outreach_draft_prompt.txt"
+    prompt_file = BASE_DIR / "prompts" / "outreach_draft_prompt.txt"
     with open(prompt_file, encoding="utf-8") as f:
         system_prompt = f.read()
 

@@ -1,11 +1,14 @@
 import os
 import json
+from pathlib import Path
 from typing import Any
 from openai import OpenAI
 from app.config import (
     HF_API_KEY,
     HF_MODEL
 )
+
+BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__))).parent
 
 from app.database.leads_repository import save_lead
 from app.database.mongodb import engagements_collection
@@ -20,7 +23,7 @@ DEFAULT_TARGET_INDUSTRIES = [
 
 MODEL = HF_MODEL or "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
-prompt_file = "app/prompts/lead_scoring_system_prompt.txt"
+prompt_file = BASE_DIR / "prompts" / "lead_scoring_system_prompt.txt"
 
 with open(prompt_file, encoding="utf-8") as f:
         SYSTEM_PROMPT_TEMPLATE = f.read()
