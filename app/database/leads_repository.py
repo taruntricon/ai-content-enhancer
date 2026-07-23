@@ -13,5 +13,5 @@ def get_all_leads():
     leads = list(
         leads_collection.find({}, {"_id": 0})
     )
-
+    leads.sort(key=lambda x: x.get("total_score", 0), reverse=True)
     return leads
