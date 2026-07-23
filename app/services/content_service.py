@@ -207,9 +207,11 @@ def generate_outreach_draft(
     }
     clean_name = (lead_name or "").strip()
     first_name = clean_name.split()[0] if clean_name else "there"
+    full_name = clean_name or "Prospect"
     v_hint = variation_hints.get((variation - 1) % 3 + 1, "Direct & Actionable")
 
     formatted_prompt = system_prompt.format(
+        full_name=full_name,
         first_name=first_name,
         lead_message=lead_message or "Interested in your product",
         post_text=post_text or "Social post",
@@ -257,10 +259,21 @@ def generate_outreach_draft(
                 sub_parts = parts.split("Body:", 1)
                 subject = sub_parts[0].strip()
                 body = sub_parts[1].strip()
-            else:
+            elif "\n" in parts and parts.split("\n", 1)[1].strip():
                 lines = parts.split("\n", 1)
                 subject = lines[0].strip()
-                body = lines[1].strip() if len(lines) > 1 else ""
+                body = lines[1].strip()
+            else:
+                # If LLM put everything on one line without Body label or newline, split on greeting (Hi/Hello/Dear)
+                import re
+                greeting_match = re.search(r"\b(Hi|Hello|Dear)\b", parts, re.IGNORECASE)
+                if greeting_match:
+                    split_pos = greeting_match.start()
+                    subject = parts[:split_pos].strip()
+                    body = parts[split_pos:].strip()
+                else:
+                    subject = parts[:60].rstrip(" ,")
+                    body = parts[60:].strip()
             
             # Clean "Body:" prefix if left in body
             body = re.sub(r"^Body:\s*", "", body, flags=re.IGNORECASE).strip()
