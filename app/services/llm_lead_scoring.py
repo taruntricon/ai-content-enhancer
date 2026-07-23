@@ -128,8 +128,7 @@ def score_leads_llm(
             "message": original.get("message", ""),
         })
 
-    tier_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-    sorted_leads = sorted(leads, key=lambda x: tier_order.get(x["intent"], 3))
+    sorted_leads = sorted(leads, key=lambda x: x.get("total_score", 0), reverse=True)
     print(sorted_leads)
     save_lead(sorted_leads)
 
